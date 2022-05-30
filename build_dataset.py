@@ -16,7 +16,6 @@ class IMDBDataset(Dataset):
     def __init__(self):
         data = pd.read_csv('/Users/chenbai/Projects/ml/imdb-sentiment/data/IMDB Dataset.csv')
         texts, labels = data['review'], data['sentiment']
-        
         tokens = []
         texts_tokens = []
         for text in texts:
@@ -30,34 +29,28 @@ class IMDBDataset(Dataset):
         for tokens in texts_tokens:
             self.texts_indices.append(self.vocab.lookup_indices(tokens))
         self.labels = [0 if label == 'negative' else 1 for label in labels]
+        self.max_length = len(max(self.texts_indices, key=len))
+
         
     def __len__(self):
         assert len(self.texts_indices) == len(self.labels)
         return len(self.labels)
 
     def __getitem__(self, idx):
-        return (self.texts_indices[idx], self.labels[idx])
+        # padding
+        pad_idx = self.vocab.get_stoi()['[pad]']
+        if len(self.texts_indices[idx]) < self.max_length:
+           self.texts_indices[idx].extend([pad_idx for i in range(self.max_length - len(self.texts_indices[idx]))])
+        return (torch.tensor(self.texts_indices[idx], dtype=torch.int64),
+                torch.tensor(self.labels[idx], dtype=torch.int64))
 
-def build_dataloader(dataset, batch_size):
-    def collate_fn(batch):
-        # 遍历得到max length of text, 然后将len < max length的padding
-        new_batch = []
-        max_length = 0
-        for i, (text, label) in enumerate(batch):
-            if len(text) > max_length:
-                max_length = len(text)
-        
-        for i, (text, label) in enumerate(batch):
-            if len(text) < max_length:
-                text.extend([0 for j in range(max_length - len(text))])
-            new_batch.append((torch.tensor(text, dtype=torch.long), torch.tensor(label, dtype=torch.long)))
-        return new_batch
-    
-    return dataloader.DataLoader(dataset, batch_size, shuffle=True, collate_fn=collate_fn)
+def build_dataloader(dataset, batch_size):    
+    return dataloader.DataLoader(dataset, batch_size)
 
 if __name__ == '__main__':
     imdb_dataset = IMDBDataset()
     data_iter = build_dataloader(imdb_dataset, batch_size=10)
-    text, label = next(iter(data_iter))[0]
-    print(text, label)
-    print(text.shape, label.shape)
+    texts, labels = next(iter(data_iter))
+    print(texts[0].shape, labels[0].shape)
+    texts, labels = next(iter(data_iter))
+    print(texts[0].shape, labels[0].shape)

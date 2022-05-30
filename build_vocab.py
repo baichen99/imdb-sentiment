@@ -32,7 +32,7 @@ def build_vocab(tokens):
     counter = Counter(tokens)
     sorted_by_freq_tuples = sorted(counter.items(), key=lambda x: x[1], reverse=True)
     ordered_dict = OrderedDict(sorted_by_freq_tuples)
-    vcb = vocab(ordered_dict, specials=['[unk]'])
+    vcb = vocab(ordered_dict, specials=['[unk]', '[pad]'])
     # set_default_index给未知字符设置一个index
     vcb.set_default_index(0)
     return vcb
