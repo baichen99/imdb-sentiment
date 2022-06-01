@@ -13,7 +13,7 @@ from build_vocab import build_vocab, tokenizer
 
 class IMDBDataset(Dataset):
     
-    def __init__(self):
+    def __init__(self, is_train=True):
         data = pd.read_csv('/Users/chenbai/Projects/ml/imdb-sentiment/data/IMDB Dataset.csv')
         texts, labels = data['review'], data['sentiment']
         tokens = []
@@ -31,6 +31,12 @@ class IMDBDataset(Dataset):
         self.labels = [0 if label == 'negative' else 1 for label in labels]
         self.max_length = len(max(self.texts_indices, key=len))
 
+        if is_train:
+            self.texts_indices = self.texts_indices[:len(self.texts_indices)//2]
+            self.labels = self.labels[:len(self.labels)//2]
+        else:
+            self.texts_indices = self.texts_indices[len(self.texts_indices)//2:]
+            self.labels = self.labels[len(self.labels)//2:]
         
     def __len__(self):
         assert len(self.texts_indices) == len(self.labels)

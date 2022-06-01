@@ -38,5 +38,17 @@ def build_vocab(tokens):
     return vcb
 
 
+def transform(text, vocab):
+    ''' transform a comment to indices
+    Args:
+        text: a string type comment
+        vocab: torchtext.vocab.vocab type, use it to get indexs of tokens
+    Return:
+        token_indexs:
+            example: 'I think this is good' => [5, 64, 3, 4, 2, 1, 1, ...]
+    '''
+    tokens = tokenizer(text)
+    return vocab.lookup_indices(tokens)
+
 if __name__ == '__main__':
     pass
